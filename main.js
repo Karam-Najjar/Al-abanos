@@ -7,12 +7,61 @@
    - gallery modal (unchanged behavior)
    - about/products entrance animations (left/right)
    - contact form validation
+   - language switching with RTL support
 */
 document.addEventListener("DOMContentLoaded", () => {
   const header = document.getElementById("siteHeader");
   const headerHeight = header ? header.offsetHeight : 72;
   const yearEl = document.getElementById("year");
   if (yearEl) yearEl.textContent = new Date().getFullYear();
+
+  // Language switching functionality
+  let currentLang = "en";
+
+  function switchLanguage(lang) {
+    if (lang === currentLang) return;
+
+    currentLang = lang;
+
+    // Update HTML direction attribute
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = lang;
+
+    // Update language switcher buttons
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.lang === lang);
+    });
+
+    // Update all translatable elements
+    document.querySelectorAll("[data-key]").forEach((element) => {
+      const key = element.dataset.key;
+      if (
+        window.translations &&
+        window.translations[lang] &&
+        window.translations[lang][key]
+      ) {
+        if (element.tagName === "INPUT" || element.tagName === "TEXTAREA") {
+          element.placeholder = window.translations[lang][key];
+        } else {
+          element.textContent = window.translations[lang][key];
+        }
+      }
+    });
+
+    // Store language preference
+    localStorage.setItem("preferredLang", lang);
+  }
+
+  // Initialize language
+  const savedLang = localStorage.getItem("preferredLang") || "en";
+  switchLanguage(savedLang);
+
+  // Language switcher event listeners
+  document.querySelectorAll(".lang-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      switchLanguage(btn.dataset.lang);
+    });
+  });
 
   // nav toggle
   const navToggle = document.getElementById("navToggle");
@@ -277,14 +326,20 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!email.value.trim() || !msg.value.trim()) {
         if (formAlert) {
           formAlert.hidden = false;
-          formAlert.textContent = "Please fill required fields.";
+          formAlert.textContent =
+            currentLang === "en"
+              ? "Please fill required fields."
+              : "يرجى ملء الحقول المطلوبة.";
           formAlert.style.color = "#b00020";
         }
         return;
       }
       if (formAlert) {
         formAlert.hidden = false;
-        formAlert.textContent = "Message sent (stub).";
+        formAlert.textContent =
+          currentLang === "en"
+            ? "Message sent (stub)."
+            : "تم إرسال الرسالة (تجريبي).";
         formAlert.style.color = "";
       }
       form.reset();
